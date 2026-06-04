@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>🍴 美食探索</title>
+<style>
+:root{--pri:#FF6B35;--pri-l:#FF8C5A;--pri-d:#E55A2B;--pri-bg:#FFF3ED;--bg:#F8F6F3;--card:#FFF;--bd:#EBE8E3;--txt:#2D2D2D;--txt2:#8E8B87;--txt3:#B8B5B1;--gn:#4CAF50;--pk:#E91E63;--star:#FFB800;--r:16px;--r-sm:8px;--sh-sm:0 1px 3px rgba(0,0,0,.06);--sh:0 2px 12px rgba(0,0,0,.08);--sh-lg:0 8px 30px rgba(0,0,0,.12);--safe:env(safe-area-inset-bottom,0px);--bnav:56px;--tf:.15s ease;--t:.3s ease;--ts:.5s cubic-bezier(.4,0,.2,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#EDEBE8;color:var(--txt);line-height:1.5;min-height:100vh;min-height:100dvh;display:flex;justify-content:center}
+.app{width:100%;max-width:600px;min-height:100vh;min-height:100dvh;background:var(--bg);position:relative;overflow-x:hidden;display:flex;flex-direction:column}
+.page{flex:1;display:none;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--bnav)+var(--safe)+90px)}
+.page.active{display:flex}
+
+/* ═══ 顶部栏 v8: 左侧定位+右侧距离 ═══ */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--bd);flex-shrink:0;position:sticky;top:0;z-index:15}
+.top-loc{display:flex;align-items:center;gap:5px;font-size:.82rem;color:var(--txt);cursor:pointer;border:none;background:none;-webkit-tap-highlight-color:transparent;font-family:inherit;max-width:60%;overflow:hidden}
+.top-loc .loc-icon{font-size:1rem;flex-shrink:0}
+.top-loc .loc-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.top-dist{display:flex;align-items:center;gap:3px;font-size:.78rem;font-weight:500;color:var(--pri);background:var(--pri-bg);border:1.5px solid var(--pri);border-radius:18px;padding:6px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;flex-shrink:0}
+.top-dist:active{transform:scale(.95)}
+.top-dist .arr{font-size:.45rem;opacity:.6}
+
+/* ═══ 分类 Tab 栏 v8 ═══ */
+.cat-tabs{display:flex;gap:6px;padding:10px 12px 6px;background:var(--card);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.cat-tabs::-webkit-scrollbar{display:none}
+.cat-tab{flex-shrink:0;padding:8px 14px;border-radius:20px;font-size:.8rem;font-weight:500;border:1.5px solid var(--bd);background:var(--bg);color:var(--txt2);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;white-space:nowrap;transition:all var(--tf)}
+.cat-tab:active{transform:scale(.95)}
+.cat-tab.on{background:var(--pri);color:#fff;border-color:var(--pri);font-weight:600;box-shadow:0 2px 8px rgba(255,107,53,.3)}
+
+/* ═══ 细类胶囊栏 v8 ═══ */
+.sub-row{display:none;gap:6px;padding:4px 12px 10px;background:var(--card);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid var(--bd)}
+.sub-row::-webkit-scrollbar{display:none}
+.sub-row.on{display:flex}
+.sub-chip{flex-shrink:0;padding:5px 12px;border-radius:14px;font-size:.73rem;font-weight:500;border:1px solid var(--bd);background:var(--bg);color:var(--txt2);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;white-space:nowrap;transition:all var(--tf)}
+.sub-chip:active{transform:scale(.95)}
+.sub-chip.on{background:var(--pri-bg);color:var(--pri);border-color:var(--pri)}
+
+.res-count{font-size:.72rem;color:var(--txt3);padding:4px 14px 0}
+.res-list{flex:1;padding:8px 14px;display:flex;flex-direction:column;gap:8px}
+
+/* 随机按钮 */
+.rand-fab{position:fixed;bottom:76px;left:50%;transform:translateX(-50%);z-index:20;padding:13px 34px;font-size:.95rem;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--pri),var(--pri-d));border:none;border-radius:26px;cursor:pointer;box-shadow:0 4px 20px rgba(255,107,53,.4);transition:all var(--tf);-webkit-tap-highlight-color:transparent;font-family:inherit}.rand-fab:active{transform:translateX(-50%) scale(.94)}.rand-fab:disabled{background:#ccc;box-shadow:none}.rand-fab.hide{opacity:0;pointer-events:none}
+
+.res-card{background:var(--card);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sh-sm);cursor:pointer;position:relative;overflow:hidden;transition:all var(--tf);display:flex;gap:12px;align-items:center;-webkit-tap-highlight-color:transparent;user-select:none}.res-card:active{transform:scale(.98);box-shadow:var(--sh)}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,107,53,.2);transform:scale(0);animation:rip .6s ease-out;pointer-events:none}@keyframes rip{to{transform:scale(4);opacity:0}}
+.card-pic{width:52px;height:52px;border-radius:12px;object-fit:cover;flex-shrink:0;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden}.card-pic img{width:100%;height:100%;border-radius:12px;object-fit:cover}
+.card-info{flex:1;min-width:0}.card-name{font-size:.92rem;font-weight:600;color:var(--txt);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.tag{font-size:.65rem;padding:2px 6px;border-radius:6px;font-weight:500;white-space:nowrap}.tag-s{background:#E8F5E9;color:var(--gn)}.tag-f{background:#FCE4EC;color:var(--pk)}.tag-c{background:#FFF8E1;color:#E65100}
+.card-meta{display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--txt2)}.card-dist{font-weight:500;color:var(--pri)}.card-price{color:var(--txt3)}.card-addr{font-size:.65rem;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.card-more{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:none;background:transparent;font-size:1rem;cursor:pointer;color:var(--txt3);z-index:2;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}.card-more:active{background:var(--bg);color:var(--txt)}
+
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;color:var(--txt2)}.e-emoji{font-size:3.5rem;margin-bottom:16px}.e-title{font-size:1rem;font-weight:600;color:var(--txt);margin-bottom:6px}.e-desc{font-size:.85rem;color:var(--txt3)}
+.placeholder-page{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;color:var(--txt2)}.placeholder-icon{font-size:4rem;margin-bottom:16px}.placeholder-title{font-size:1.1rem;font-weight:600;color:var(--txt);margin-bottom:8px}.placeholder-desc{font-size:.85rem;color:var(--txt3)}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;display:flex;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:.5px solid var(--bd);padding-bottom:var(--safe);z-index:30}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0 4px;border:none;background:none;cursor:pointer;color:var(--txt3);transition:color var(--tf);-webkit-tap-highlight-color:transparent;font-family:inherit;gap:1px}.nav-tab .nav-icon{font-size:1.4rem}.nav-tab .nav-label{font-size:.62rem;font-weight:500}.nav-tab.active{color:var(--pri)}
+
+.pop-menu{position:fixed;background:var(--card);border-radius:var(--r-sm);box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:60;opacity:0;pointer-events:none;transform:scale(.9);transition:all .2s ease;min-width:140px;overflow:hidden}.pop-menu.on{opacity:1;pointer-events:auto;transform:scale(1)}
+.pop-item{display:block;width:100%;padding:12px 16px;border:none;background:none;font-size:.9rem;color:var(--txt);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;font-family:inherit}.pop-item:active{background:var(--bg)}.pop-item.danger{color:#E53935}
+
+.slot-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity var(--t)}.slot-overlay.on{opacity:1;pointer-events:auto}
+.slot-machine{background:linear-gradient(180deg,#3a2a1a,#5a3a2a 30%,#4a2a1a 70%,#2a1a0a);border-radius:var(--r);padding:20px 16px 16px;box-shadow:0 12px 48px rgba(0,0,0,.5);display:flex;flex-direction:column;align-items:center;gap:12px;border:3px solid #8B6914}
+.slot-reels{display:flex;gap:10px;background:#1a0a00;border-radius:12px;padding:10px;border:2px solid #8B6914}
+.slot-reel{width:85px;height:130px;background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,0)25%,rgba(0,0,0,0)75%,rgba(0,0,0,.6));border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(139,105,20,.4);position:relative}
+.slot-reel::before{content:'';position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,215,0,.4);z-index:2;pointer-events:none;transform:translateY(-50%)}
+.reel-emoji{font-size:2.5rem;line-height:1}.reel-name{font-size:.7rem;color:#fff;font-weight:600;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.8);max-width:80px;overflow:hidden;text-overflow:ellipsis}
+.slot-reel.win{animation:reel-win .5s ease 3}@keyframes reel-win{0%,100%{box-shadow:0 0 0 rgba(255,215,0,0)}50%{box-shadow:0 0 24px rgba(255,215,0,.7),inset 0 0 16px rgba(255,215,0,.3)}}
+.slot-hint{color:#FFD700;font-size:.85rem;font-weight:600;text-shadow:0 0 10px rgba(255,215,0,.5)}
+.slot-close{margin-top:4px;padding:8px 20px;border-radius:20px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:rgba(255,255,255,.7);font-size:.8rem;cursor:pointer;font-family:inherit}
+
+.sheet-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:90;opacity:0;pointer-events:none;transition:opacity var(--t)}.sheet-ov.on{opacity:1;pointer-events:auto}
+.sheet-pn{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:600px;max-height:80vh;max-height:80dvh;background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:24px 20px;padding-bottom:calc(24px+var(--safe));z-index:91;overflow-y:auto;transition:transform var(--ts);box-shadow:0 -4px 20px rgba(0,0,0,.15)}.sheet-pn.on{transform:translateX(-50%) translateY(0)}
+.sheet-hdl{width:40px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 16px}.sheet-emoji{font-size:3.5rem;text-align:center;margin-bottom:8px}.sheet-name{font-size:1.3rem;font-weight:700;text-align:center;margin-bottom:8px}.sheet-tags{display:flex;justify-content:center;gap:8px;margin-bottom:16px}
+.sheet-row{display:flex;justify-content:space-around;text-align:center;padding:12px 0;border-top:1px solid var(--bd);margin-bottom:16px}.sheet-item{display:flex;flex-direction:column;gap:2px}.sheet-val{font-size:1.1rem;font-weight:600}.sheet-lbl{font-size:.75rem;color:var(--txt3)}.sheet-addr{font-size:.85rem;color:var(--txt2);text-align:center;margin-bottom:16px}.sheet-acts{display:flex;gap:10px}
+.s-btn{flex:1;padding:12px 16px;border-radius:var(--r);font-size:.9rem;font-weight:600;cursor:pointer;transition:all var(--tf);-webkit-tap-highlight-color:transparent;font-family:inherit;border:none;text-align:center}.s-btn:active{transform:scale(.95)}
+.s-btn-pri{background:var(--pri);color:#fff;box-shadow:0 2px 8px rgba(255,107,53,.3)}.s-btn-sec{background:var(--bg);color:var(--txt);border:1.5px solid var(--bd)}.s-btn-out{background:transparent;color:var(--txt2);border:1.5px solid var(--bd);font-weight:400;width:100%;margin-top:8px}
+
+.srch-page{position:fixed;inset:0;z-index:85;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .25s ease}.srch-page.on{opacity:1;pointer-events:auto}
+.srch-top{display:flex;align-items:center;padding:12px 14px;padding-top:max(12px,env(safe-area-inset-top,0px));background:var(--card);gap:8px;flex-shrink:0}
+.srch-back{width:36px;height:36px;border:none;background:none;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--pri);flex-shrink:0}
+.srch-wrap{flex:1;display:flex;align-items:center;background:var(--bg);border-radius:10px;padding:0 10px;gap:6px}.srch-icon{font-size:1rem;opacity:.5}
+.srch-inp{flex:1;border:none;background:none;padding:10px 0;font-size:.95rem;outline:none;font-family:inherit;color:var(--txt)}.srch-inp::placeholder{color:var(--txt3)}
+.srch-clr{width:22px;height:22px;border-radius:50%;border:none;background:#ccc;color:#fff;font-size:.7rem;cursor:pointer;flex-shrink:0;display:none;align-items:center;justify-content:center}.srch-clr.on{display:flex}
+.srch-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 0}
+.srch-item{display:flex;align-items:center;padding:13px 16px;gap:10px;cursor:pointer;background:var(--card);border-bottom:.5px solid var(--bd)}.srch-item:active{background:var(--bg)}
+.srch-item-icon{font-size:1.1rem;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:8px;flex-shrink:0}.srch-item-info{flex:1;min-width:0}.srch-item-name{font-size:.92rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.srch-item-addr{font-size:.76rem;color:var(--txt3);margin-top:1px}.srch-item-dist{font-size:.7rem;color:var(--pri);flex-shrink:0;font-weight:500}
+.srch-empty,.srch-loading{text-align:center;padding:40px 16px;color:var(--txt3);font-size:.85rem}
+
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:95;opacity:0;pointer-events:none;transition:opacity var(--t);padding:20px}.modal-ov.on{opacity:1;pointer-events:auto}
+.modal-pn{width:100%;max-width:360px;max-height:70vh;max-height:70dvh;background:var(--card);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;box-shadow:var(--sh-lg)}.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.modal-title{font-size:1.1rem;font-weight:700}.modal-close{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px}.bl-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--r-sm)}.bl-emoji{font-size:1.4rem}.bl-name{flex:1;font-size:.9rem;font-weight:500}
+.btn-restore{padding:6px 14px;border-radius:14px;border:none;background:var(--pri-bg);color:var(--pri);font-size:.8rem;font-weight:500;cursor:pointer;font-family:inherit}.btn-restore:active{transform:scale(.9)}.modal-empty{text-align:center;padding:32px 16px;color:var(--txt3);font-size:.9rem}
+
+.toast-ct{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:10px 20px;background:rgba(45,45,45,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;border-radius:22px;font-size:.85rem;font-weight:500;white-space:nowrap;animation:tin .3s ease forwards,tout .3s ease 1.8s forwards;pointer-events:auto;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+@keyframes tin{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}@keyframes tout{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-12px)}}
+.bl-link-wrap{display:flex;justify-content:center;padding:4px 0 0}.bl-link{background:none;border:none;font-size:.82rem;color:var(--txt2);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:inherit;padding:6px 12px}.bl-link.has{color:var(--pri);font-weight:500}
+/* 距离popover */
+.dist-pop{position:fixed;background:var(--card);border-radius:12px;box-shadow:0 6px 28px rgba(0,0,0,.18);z-index:70;opacity:0;pointer-events:none;transform:translateY(-4px);transition:all .2s ease;padding:4px 0;min-width:100px}.dist-pop.on{opacity:1;pointer-events:auto;transform:translateY(0)}
+.dist-pop .it{display:block;width:100%;padding:11px 20px;border:none;background:none;font-size:.85rem;color:var(--txt);cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;font-family:inherit}.dist-pop .it:active{background:var(--bg)}.dist-pop .it.sel{color:var(--pri);font-weight:600;background:var(--pri-bg)}
+.dist-back{position:fixed;inset:0;z-index:69;display:none}.dist-back.on{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="page active" id="page-home">
+  <!-- ═══ 顶部栏 v8 ═══ -->
+  <header class="top-bar">
+    <button class="top-loc" id="topLoc"><span class="loc-icon">📍</span><span class="loc-txt" id="locTxt">定位中...</span></button>
+    <button class="top-dist" id="topDist">500m<span class="arr">▼</span></button>
+  </header>
+  <div class="dist-back" id="distBack"></div>
+  <div class="dist-pop" id="distPop"></div>
+
+  <!-- ═══ 分类 Tab v8 ═══ -->
+  <div class="cat-tabs" id="catTabs">
+    <button class="cat-tab on" data-v="全部美食">全部</button>
+    <button class="cat-tab" data-v="简餐">🍜 简餐</button>
+    <button class="cat-tab" data-v="正餐">🥩 正餐</button>
+    <button class="cat-tab" data-v="饮品">🥤 饮品</button>
+    <button class="cat-tab" data-v="小吃">🍿 小吃</button>
+  </div>
+  <div class="sub-row" id="subRow"></div>
+
+  <div class="res-count" id="resCount"></div>
+  <div class="res-list" id="resList"></div>
+  <div class="bl-link-wrap"><button class="bl-link" id="btnBl">📋 查看黑名单</button></div>
+</div>
+<div class="page" id="page-translate"><div class="placeholder-page"><div class="placeholder-icon">📖</div><div class="placeholder-title">菜谱翻译</div><div class="placeholder-desc">功能开发中，敬请期待 ✨</div></div></div>
+<div class="page" id="page-profile"><div class="placeholder-page"><div class="placeholder-icon">👤</div><div class="placeholder-title">个人中心</div><div class="placeholder-desc">功能开发中，敬请期待 ✨</div></div></div>
+
+<button class="rand-fab" id="btnRand">🎰 随机摇一家</button>
+
+<div class="srch-page" id="srchPage"><div class="srch-top"><button class="srch-back" id="srchBack">←</button><div class="srch-wrap"><span class="srch-icon">🔍</span><input class="srch-inp" id="srchInp" placeholder="搜索地址" autocomplete="off"><button class="srch-clr" id="srchClr">✕</button></div></div><div class="srch-body" id="srchBody"><div class="srch-empty">输入关键词搜索地址</div></div></div>
+
+<div class="slot-overlay" id="slotOv"><div class="slot-machine"><div class="slot-reels"><div class="slot-reel" id="slotR1"><span class="reel-emoji" id="reelE1">🎰</span><span class="reel-name" id="reelN1">准备</span></div><div class="slot-reel" id="slotR2"><span class="reel-emoji" id="reelE2">🎰</span><span class="reel-name" id="reelN2">准备</span></div><div class="slot-reel" id="slotR3"><span class="reel-emoji" id="reelE3">🎰</span><span class="reel-name" id="reelN3">准备</span></div></div><p class="slot-hint" id="slotHint">🎰 随机抽取中...</p></div><button class="slot-close" id="slotClose">关闭</button></div>
+
+<div class="sheet-ov" id="sheetOv"></div><div class="sheet-pn" id="sheetPn"><div class="sheet-hdl"></div><div class="sheet-emoji" id="sheetEm"></div><div class="sheet-name" id="sheetNm"></div><div class="sheet-tags" id="sheetTg"></div><div class="sheet-row"><div class="sheet-item"><span class="sheet-val" id="sheetPr"></span><span class="sheet-lbl">人均</span></div><div class="sheet-item"><span class="sheet-val" id="sheetDs"></span><span class="sheet-lbl">距离</span></div></div><div class="sheet-addr" id="sheetAd"></div><div class="sheet-acts"><button class="s-btn s-btn-pri" id="sheetNav">🗺️ 导航去这里</button><button class="s-btn s-btn-sec" id="sheetReroll">🔄 换一家</button></div><button class="s-btn s-btn-out" id="sheetClose">关闭</button></div>
+
+<div class="modal-ov" id="blOv"><div class="modal-pn"><div class="modal-hd"><span class="modal-title">📋 黑名单</span><button class="modal-close" id="blClose">✕</button></div><div class="modal-body" id="blBody"></div></div></div>
+<div class="pop-menu" id="popMenu"><button class="pop-item danger" data-act="bl-pop">🚫 拉黑此餐厅</button></div>
+<div class="toast-ct" id="toastCt"></div>
+
+<nav class="bottom-nav">
+  <button class="nav-tab active" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">首页</span></button>
+  <button class="nav-tab" data-tab="translate"><span class="nav-icon">📖</span><span class="nav-label">翻译</span></button>
+  <button class="nav-tab" data-tab="profile"><span class="nav-icon">👤</span><span class="nav-label">我的</span></button>
+</nav>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   美食探索 v8 — 顶部重构 + Tab胶囊筛选 + 自动分页全量数据
+   ═══════════════════════════════════════════════════════════ */
+var K='6fbd35efe14e5bab2f88ccd1b5ba2563',H='https://restapi.amap.com',DEF={lat:31.2304,lng:121.4737},LS='fe_bl';
+
+/* ── 品牌 Logo ── */
+var BRAND_LOGO={
+  '肯德基':'https://bkimg.cdn.bcebos.com/pic/5882b2b7d0a20cf43185d62d76094b36acaf2f49','KFC':'https://bkimg.cdn.bcebos.com/pic/5882b2b7d0a20cf43185d62d76094b36acaf2f49',
+  '麦当劳':'https://www.mcdonalds.com.cn/sites/default/files/inline-images/Logo.png','McDonald':'https://www.mcdonalds.com.cn/sites/default/files/inline-images/Logo.png',
+  '汉堡王':'https://bkimg.cdn.bcebos.com/pic/9f510fb30f2442a7b41626a6dd43ad4bd1130233','BurgerKing':'https://bkimg.cdn.bcebos.com/pic/9f510fb30f2442a7b41626a6dd43ad4bd1130233',
+  '德克士':'https://bkimg.cdn.bcebos.com/pic/b7003af33a87e9507b4e7c6315385343fbf2b4e1','华莱士':'https://bkimg.cdn.bcebos.com/pic/b21bb051f8198618d7b2d33a41ed2e738bd4e645',
+  '赛百味':'https://bkimg.cdn.bcebos.com/pic/3bf33a87e950352a7b9a1a155343fbf2b2118b8a','Subway':'https://bkimg.cdn.bcebos.com/pic/3bf33a87e950352a7b9a1a155343fbf2b2118b8a',
+  '塔斯汀':'https://bkimg.cdn.bcebos.com/pic/9d82d158ccbf6c81a0a3b7f5b83eb13533fa40b1',
+  '必胜客':'https://bkimg.cdn.bcebos.com/pic/1e30e924b899a90104bfa26814950a7b0208f534','PizzaHut':'https://bkimg.cdn.bcebos.com/pic/1e30e924b899a90104bfa26814950a7b0208f534',
+  '达美乐':'https://bkimg.cdn.bcebos.com/pic/0dd7912397dda1447d4a1e59b0b7d0a20cf486a2',
+  '海底捞':'https://bkimg.cdn.bcebos.com/pic/0b55b319ebc4b7456bb5a0b7c8fc1e178a8215a0',
+  '小龙坎':'https://bkimg.cdn.bcebos.com/pic/a71ea8d3fd1f413475e3e13b251f95cad1c85e5f',
+  '呷哺呷哺':'https://bkimg.cdn.bcebos.com/pic/242dd42a2834349b8fd2cf57c3ea15ce36d3be17',
+  '西贝':'https://bkimg.cdn.bcebos.com/pic/1e30e924b899a901b352a7e01f950a7b0208f5a1','西贝莜面村':'https://bkimg.cdn.bcebos.com/pic/1e30e924b899a901b352a7e01f950a7b0208f5a1',
+  '新白鹿':'https://bkimg.cdn.bcebos.com/pic/b7003af33a87e950b34991b615385343fbf2b402',
+  '绿茶':'https://bkimg.cdn.bcebos.com/pic/d62a6059252dd42ab7c3e6b3053b5bb5c9eab8bd','绿茶餐厅':'https://bkimg.cdn.bcebos.com/pic/d62a6059252dd42ab7c3e6b3053b5bb5c9eab8bd',
+  '外婆家':'https://bkimg.cdn.bcebos.com/pic/b03533fa828ba61e0650b6f84d34970a304e5918',
+  '太二':'https://bkimg.cdn.bcebos.com/pic/cb8065380cd79123337cdfbaa5345982b2b7805e','太二酸菜鱼':'https://bkimg.cdn.bcebos.com/pic/cb8065380cd79123337cdfbaa5345982b2b7805e',
+  '半天妖':'https://bkimg.cdn.bcebos.com/pic/b3b7d0a20cf431ad16e4c8214e36acaf2edd9804','半天妖烤鱼':'https://bkimg.cdn.bcebos.com/pic/b3b7d0a20cf431ad16e4c8214e36acaf2edd9804',
+  '萨莉亚':'https://bkimg.cdn.bcebos.com/pic/8b13632762d0f7032ee2375906fa513d2697c5a0',
+  '星巴克':'https://bkimg.cdn.bcebos.com/pic/d62a6059252dd42a4585ba6a053b5bb5c9eab8f2','Starbucks':'https://bkimg.cdn.bcebos.com/pic/d62a6059252dd42a4585ba6a053b5bb5c9eab8f2',
+  '瑞幸':'https://www.luckincoffee.com/favicon.ico','luckin':'https://www.luckincoffee.com/favicon.ico',
+  'Manner':'https://bkimg.cdn.bcebos.com/pic/9f2f070828381f30128cb11ba1014c086e06f0c4',
+  'Costa':'https://bkimg.cdn.bcebos.com/pic/42166d224f4a20a4d2dfb26291529822720ed0d2',
+  '喜茶':'https://www.heytea.com/favicon.ico',
+  '奈雪':'https://bkimg.cdn.bcebos.com/pic/5d6034a85edf8db1e9c9e44d0023dd54564e7454',
+  '一点点':'https://bkimg.cdn.bcebos.com/pic/4d086e061d950a7b99e839f80dd162d9f2d3c93a',
+  '茶百道':'https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd9d3a1b03a3001213fb80e911d',
+  '古茗':'https://bkimg.cdn.bcebos.com/pic/503d269759ee3d6d6a7f7e0d48166d224f4ade31',
+  '蜜雪冰城':'https://static.foodtalks.cn/image/post/2498ed4be85ce66a9d9cc1a0e52e568405b9.png',
+  'CoCo':'https://bkimg.cdn.bcebos.com/pic/7af40ad162d9f2d3f82fd20fa6ec8a136327cc12','coco':'https://bkimg.cdn.bcebos.com/pic/7af40ad162d9f2d3f82fd20fa6ec8a136327cc12',
+  '沪上阿姨':'https://bkimg.cdn.bcebos.com/pic/a6efce1b9d16fdfa14c04dc0bc8f8c5494ee7b3c',
+  '霸王茶姬':'https://bkimg.cdn.bcebos.com/pic/3b87e950352ac65cc3b2c94df0f2b21193138a0f',
+  '柠季':'https://bkimg.cdn.bcebos.com/pic/4a36acaf2edda3cca1a2e2b906e93901213f9246',
+  '杨国福':'https://bkimg.cdn.bcebos.com/pic/5fdf8db1cb1349545e0e68cb5d4e9258d1094a66',
+  '张亮麻辣烫':'https://bkimg.cdn.bcebos.com/pic/0df3d7ca7bcb0a46d80b68c76763f6246b60af97','张亮':'https://bkimg.cdn.bcebos.com/pic/0df3d7ca7bcb0a46d80b68c76763f6246b60af97',
+  '小杨生煎':'https://bkimg.cdn.bcebos.com/pic/5ab5c9ea15ce36d3bf83c10e32f33a87e950b1e4',
+  '吉祥馄饨':'https://bkimg.cdn.bcebos.com/pic/63d0f703918fa0ecbd5c8a28269759ee3d6ddbf2',
+  '味千拉面':'https://bkimg.cdn.bcebos.com/pic/77094b36acaf2edd6e0e04c2801001e9390193fe',
+  '真功夫':'https://bkimg.cdn.bcebos.com/pic/63d0f703918fa0ec3e5e64b7249759ee3d6ddb9e',
+  '永和大王':'https://bkimg.cdn.bcebos.com/pic/7a899e510fb30f240e84f74ec895d143ad4b03d2',
+  '沙县':'https://bkimg.cdn.bcebos.com/pic/63d9f2d3572c11dfdb0ec7c56c2762d0f603c28f',
+  '好利来':'https://bkimg.cdn.bcebos.com/pic/8d5494eef01f3a29f4c5a7d79e25bc315c607c4d',
+  '鲍师傅':'https://bkimg.cdn.bcebos.com/pic/0b55b319ebc4b745f2ea51e7c8fc1e178a82157c',
+  '泸溪河':'https://bkimg.cdn.bcebos.com/pic/0824ab18972bd407a6a7d15f7a899e510fb30917',
+  '周黑鸭':'https://bkimg.cdn.bcebos.com/pic/3b87e950352ac65cad0c35cbf0f2b21193138a54',
+  '绝味':'https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd92cef0a4c3001213fb80e9153','绝味鸭脖':'https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd92cef0a4c3001213fb80e9153',
+  '正新鸡排':'https://bkimg.cdn.bcebos.com/pic/0dd7912397dda1447b58f8e3b0b7d0a20cf486d5',
+  '鲜芋仙':'https://bkimg.cdn.bcebos.com/pic/c995d143ad4bd11322174b4153afa40f4bfb05c3',
+  'DQ':'https://bkimg.cdn.bcebos.com/pic/b58f8c5494eef01ffc2c93b3eafe9925bc317db7',
+  '哈根达斯':'https://bkimg.cdn.bcebos.com/pic/e4dde71190ef76c61879fcb99c16fdfaaf516795',
+  '巴黎贝甜':'https://bkimg.cdn.bcebos.com/pic/8cb1cb1349540923bfc4e3c79558d109b3de49c5',
+  '85度C':'https://bkimg.cdn.bcebos.com/pic/0df3d7ca7bcb0a465595c84f6763f6246b60affb',
+  '面包新语':'https://bkimg.cdn.bcebos.com/pic/0b55b319ebc4b745e054e6efc8fc1e178a8215fb',
+};
+function getLogo(n){for(var k in BRAND_LOGO){if(!BRAND_LOGO.hasOwnProperty(k))continue;if(n===k||(n.indexOf(k)>=0&&k.length>=3)||(k.indexOf(n)>=0&&n.length>=4))return BRAND_LOGO[k];}return null}
+
+/* ── 分类系统 v9：精确品牌映射 + 新二级分类 ── */
+var CAT1=['全部美食','简餐','正餐','饮品','小吃'];
+var CAT2={
+  '简餐':['中式快餐','西式快餐','粉面米线','饺子馄饨','轻食沙拉','麻辣烫冒菜','其他'],
+  '正餐':['火锅','烧烤','川湘菜','江浙菜','东北菜','粤菜','日韩菜','自助餐','西餐','其他'],
+  '饮品':['奶茶','咖啡','甜品','其他'],
+  '小吃':['卤味熟食','炸串小吃','坚果零食','烘焙点心','其他'],
+};
+var C2E={中式快餐:'🍱',西式快餐:'🍔',粉面米线:'🍜',饺子馄饨:'🥟',轻食沙拉:'🥗',麻辣烫冒菜:'🥘',火锅:'🫕',烧烤:'🍖',川湘菜:'🌶️',江浙菜:'🥢',东北菜:'🥟',粤菜:'🥢',日韩菜:'🍣',自助餐:'🍽️',西餐:'🍝',奶茶:'🧋',咖啡:'☕',甜品:'🍰',卤味熟食:'🍗',炸串小吃:'🍢',坚果零食:'🍿',烘焙点心:'🍞',其他:'🍽️'};
+var NON_FOOD=['礼品','月饼','特产','肉干','果脯','烟酒','超市','便利店','水果','蔬菜','保健品','茶叶','干货','炒货','糖果','巧克力','礼盒','年货','海产','早餐','早点','馒头包子','巴比馒头','包子店','馒头店','早阳'];
+
+/* ── 品牌精确映射表 BRAND_DICT（最高优先级） ── */
+var BRAND_DICT={
+  // ═══ 简餐 ═══
+  '老乡鸡':'简餐/中式快餐','乡村基':'简餐/中式快餐','大米先生':'简餐/中式快餐','真功夫':'简餐/中式快餐','永和大王':'简餐/中式快餐','吉野家':'简餐/中式快餐','食其家':'简餐/中式快餐','老娘舅':'简餐/中式快餐','杨铭宇黄焖鸡':'简餐/中式快餐','谷田稻香':'简餐/中式快餐','煲仔皇':'简餐/中式快餐','香他她煲仔饭':'简餐/中式快餐',
+  '麦当劳':'简餐/西式快餐','肯德基':'简餐/西式快餐','塔斯汀':'简餐/西式快餐','德克士':'简餐/西式快餐','华莱士':'简餐/西式快餐','汉堡王':'简餐/西式快餐','派乐汉堡':'简餐/西式快餐','达美乐':'简餐/西式快餐','达美乐比萨':'简餐/西式快餐','尊宝比萨':'简餐/西式快餐','萨莉亚':'简餐/西式快餐','必胜客':'简餐/西式快餐','棒约翰':'简餐/西式快餐','比格比萨':'简餐/西式快餐',
+  '陈香贵':'简餐/粉面米线','马记永':'简餐/粉面米线','张拉拉':'简餐/粉面米线','五爷拌面':'简餐/粉面米线','和府捞面':'简餐/粉面米线','兰州拉面':'简餐/粉面米线','重庆小面':'简餐/粉面米线','桂林米粉':'简餐/粉面米线','螺霸王':'简餐/粉面米线','好欢螺':'简餐/粉面米线','蒙自源':'简餐/粉面米线','阿香米线':'简餐/粉面米线','大鼓米线':'简餐/粉面米线','味千拉面':'简餐/粉面米线','一风堂':'简餐/粉面米线','丸龟制面':'简餐/粉面米线','东方宫':'简餐/粉面米线','马子禄':'简餐/粉面米线','舌尖尖':'简餐/粉面米线',
+  '袁记云饺':'简餐/饺子馄饨','吉祥馄饨':'简餐/饺子馄饨','如意馄饨':'简餐/饺子馄饨','喜家德':'简餐/饺子馄饨','大娘水饺':'简餐/饺子馄饨','柏记水饺':'简餐/饺子馄饨','东方饺子王':'简餐/饺子馄饨','老边饺子':'简餐/饺子馄饨','东北饺子王':'简餐/饺子馄饨','千里香馄饨':'简餐/饺子馄饨','袁亮宏':'简餐/饺子馄饨','馄饨侯':'简餐/饺子馄饨',
+  '赛百味':'简餐/轻食沙拉','Subway':'简餐/轻食沙拉','鲜目录':'简餐/轻食沙拉','N多寿司':'简餐/轻食沙拉','沙野轻食':'简餐/轻食沙拉','超能鹿战队':'简餐/轻食沙拉','沙拉拉':'简餐/轻食沙拉',
+  '杨国福':'简餐/麻辣烫冒菜','张亮麻辣烫':'简餐/麻辣烫冒菜','张亮':'简餐/麻辣烫冒菜','冒菜西施':'简餐/麻辣烫冒菜','三顾冒菜':'简餐/麻辣烫冒菜','蜀地冒菜':'简餐/麻辣烫冒菜','拿渡':'简餐/麻辣烫冒菜','麻辣空间':'简餐/麻辣烫冒菜','麻辣诱惑':'简餐/麻辣烫冒菜',
+  '庆丰包子':'简餐/其他','曼玲粥':'简餐/其他','三米粥':'简餐/其他','包道':'简餐/其他','老盛昌':'简餐/其他','老盛兴':'简餐/其他',
+  '沙县小吃':'简餐/中式快餐','沙县':'简餐/中式快餐','胡子大厨':'简餐/中式快餐','稻花驿':'简餐/中式快餐','稻香村':'简餐/中式快餐',
+  '超级碗':'简餐/轻食沙拉','超模厨房':'简餐/轻食沙拉','FOODBOWL':'简餐/轻食沙拉',
+  // ═══ 正餐 ═══
+  '海底捞':'正餐/火锅','呷哺呷哺':'正餐/火锅','小肥羊':'正餐/火锅','蜀大侠':'正餐/火锅','小龙坎':'正餐/火锅','谭鸭血':'正餐/火锅','巴奴':'正餐/火锅','佩姐':'正餐/火锅','珮姐':'正餐/火锅','楠火锅':'正餐/火锅','朱光玉':'正餐/火锅','后火锅':'正餐/火锅','萍姐':'正餐/火锅','吼堂':'正餐/火锅','电台巷':'正餐/火锅','卤校长':'正餐/火锅','井格':'正餐/火锅','德庄':'正餐/火锅','刘一手':'正餐/火锅','秦妈':'正餐/火锅','桥头':'正餐/火锅','孔亮':'正餐/火锅','捞王':'正餐/火锅','八合里':'正餐/火锅','左庭右院':'正餐/火锅','哥老官':'正餐/火锅','凑凑':'正餐/火锅',
+  '西塔老太太':'正餐/烧烤','九田家':'正餐/烧烤','新石器烤肉':'正餐/烧烤','汉拿山':'正餐/烧烤','酒拾烤肉':'正餐/烧烤','小猪查理':'正餐/烧烤','安三胖':'正餐/烧烤','刘炭长':'正餐/烧烤','姜胖胖':'正餐/烧烤','权金城':'正餐/烧烤','汉釜宫':'正餐/烧烤','韩宫宴':'正餐/烧烤','姜虎东':'正餐/烧烤','烧江南':'正餐/烧烤','丰茂烤串':'正餐/烧烤','冰城串吧':'正餐/烧烤','聚点串吧':'正餐/烧烤','何师烧烤':'正餐/烧烤','大渔铁板烧':'正餐/烧烤','赤坂亭':'正餐/烧烤','上井':'正餐/烧烤','牛角':'正餐/烧烤','老乾杯':'正餐/烧烤','木屋烧烤':'正餐/烧烤','很久以前':'正餐/烧烤','半天妖':'正餐/烧烤','半天妖烤鱼':'正餐/烧烤','炉鱼':'正餐/烧烤',
+  '太二':'正餐/川湘菜','太二酸菜鱼':'正餐/川湘菜','眉州东坡':'正餐/川湘菜','俏江南':'正餐/川湘菜','费大厨':'正餐/川湘菜','炊烟':'正餐/川湘菜','毛家饭店':'正餐/川湘菜','望湘园':'正餐/川湘菜',
+  '外婆家':'正餐/江浙菜','绿茶':'正餐/江浙菜','绿茶餐厅':'正餐/江浙菜','南京大牌档':'正餐/江浙菜','江南里':'正餐/江浙菜','新白鹿':'正餐/江浙菜','知味观':'正餐/江浙菜','楼外楼':'正餐/江浙菜','松鹤楼':'正餐/江浙菜','杏花楼':'正餐/江浙菜','沈大成':'正餐/江浙菜','王家沙':'正餐/江浙菜','绿波廊':'正餐/江浙菜','老正兴':'正餐/江浙菜','德兴馆':'正餐/江浙菜','老吉士':'正餐/江浙菜','南翔馒头':'正餐/江浙菜','小杨生煎':'正餐/江浙菜','大壶春':'正餐/江浙菜','光明邨':'正餐/江浙菜','小绍兴':'正餐/江浙菜','振鼎鸡':'正餐/江浙菜','小菜园':'正餐/江浙菜',
+  '东北人家':'正餐/东北菜','锅包肉':'正餐/东北菜','铁锅炖':'正餐/东北菜','东北风':'正餐/东北菜','西贝':'正餐/东北菜','西贝莜面村':'正餐/东北菜','小尾羊':'正餐/东北菜',
+  '点都德':'正餐/粤菜','陶陶居':'正餐/粤菜','广州酒家':'正餐/粤菜','太兴':'正餐/粤菜','翠华':'正餐/粤菜','避风塘':'正餐/粤菜','炳胜':'正餐/粤菜','莲香楼':'正餐/粤菜','泮溪':'正餐/粤菜',
+  '寿司郎':'正餐/日韩菜','元气寿司':'正餐/日韩菜','争鲜':'正餐/日韩菜','禾绿':'正餐/日韩菜',
+  '西堤牛排':'正餐/西餐','王品':'正餐/西餐','豪客来':'正餐/西餐','斗牛士':'正餐/西餐','尊品牛排':'正餐/西餐',
+  '喜庭':'正餐/自助餐','钱小奴':'正餐/自助餐','星伦多':'正餐/自助餐','多伦多':'正餐/自助餐','亚马逊':'正餐/自助餐','吉布鲁':'正餐/自助餐','比格':'正餐/自助餐','好伦哥':'正餐/自助餐','金汉斯':'正餐/自助餐','汉丽轩':'正餐/自助餐','金钱豹':'正餐/自助餐','四海一家':'正餐/自助餐',
+  // ═══ 饮品 ═══
+  '喜茶':'饮品/奶茶','奈雪':'饮品/奶茶','奈雪的茶':'饮品/奶茶','蜜雪冰城':'饮品/奶茶','茶百道':'饮品/奶茶','古茗':'饮品/奶茶','书亦烧仙草':'饮品/奶茶','沪上阿姨':'饮品/奶茶','益禾堂':'饮品/奶茶','CoCo':'饮品/奶茶','coco':'饮品/奶茶','一点点':'饮品/奶茶','霸王茶姬':'饮品/奶茶','茶颜悦色':'饮品/奶茶','乐乐茶':'饮品/奶茶','伏见桃山':'饮品/奶茶','七分甜':'饮品/奶茶','甜啦啦':'饮品/奶茶','快乐番薯':'饮品/奶茶','贡茶':'饮品/奶茶','50岚':'饮品/奶茶','鹿角巷':'饮品/奶茶','黑泷堂':'饮品/奶茶','柠季':'饮品/奶茶','茉莉奶白':'饮品/奶茶',
+  '星巴克':'饮品/咖啡','Starbucks':'饮品/咖啡','瑞幸':'饮品/咖啡','luckin':'饮品/咖啡','Manner':'饮品/咖啡','M Stand':'饮品/咖啡','MStand':'饮品/咖啡','Tims':'饮品/咖啡','库迪':'饮品/咖啡','太平洋咖啡':'饮品/咖啡','Costa':'饮品/咖啡','上岛咖啡':'饮品/咖啡','漫咖啡':'饮品/咖啡','雕刻时光':'饮品/咖啡','咖啡陪你':'饮品/咖啡','迪欧咖啡':'饮品/咖啡','Peet':'饮品/咖啡','皮爷':'饮品/咖啡','Seesaw':'饮品/咖啡','代数学家':'饮品/咖啡','Algebraist':'饮品/咖啡','Grid':'饮品/咖啡','蓝瓶':'饮品/咖啡','BlueBottle':'饮品/咖啡','%Arabica':'饮品/咖啡','Arabica':'饮品/咖啡','三顿半':'饮品/咖啡','永璞':'饮品/咖啡','隅田川':'饮品/咖啡','挪瓦':'饮品/咖啡','Nowwa':'饮品/咖啡',
+  '满记甜品':'饮品/甜品','许留山':'饮品/甜品','DQ':'饮品/甜品','哈根达斯':'饮品/甜品','鲜芋仙':'饮品/甜品','芋观园':'饮品/甜品','仙芋世家':'饮品/甜品','甜蔻':'饮品/甜品','麦记牛奶':'饮品/甜品',
+  '快乐柠檬':'饮品/其他','一只酸奶牛':'饮品/其他','煮叶':'饮品/其他','大益茶庭':'饮品/其他',
+  // ═══ 小吃 ═══
+  '绝味':'小吃/卤味熟食','绝味鸭脖':'小吃/卤味熟食','周黑鸭':'小吃/卤味熟食','紫燕':'小吃/卤味熟食','紫燕百味鸡':'小吃/卤味熟食','煌上煌':'小吃/卤味熟食','廖记棒棒鸡':'小吃/卤味熟食','久久丫':'小吃/卤味熟食','精武鸭脖':'小吃/卤味熟食','小胡鸭':'小吃/卤味熟食',
+  '正新鸡排':'小吃/炸串小吃','大脸鸡排':'小吃/炸串小吃','第一佳':'小吃/炸串小吃','豪大大':'小吃/炸串小吃','战斗鸡':'小吃/炸串小吃','鸡柳大人':'小吃/炸串小吃','超级鸡车':'小吃/炸串小吃','夸父炸串':'小吃/炸串小吃','关东煮':'小吃/炸串小吃','章鱼小丸子':'小吃/炸串小吃',
+  '良品铺子':'小吃/坚果零食','三只松鼠':'小吃/坚果零食','来伊份':'小吃/坚果零食','百草味':'小吃/坚果零食','洽洽':'小吃/坚果零食','真心食品':'小吃/坚果零食','姚生记':'小吃/坚果零食',
+  '85度C':'小吃/烘焙点心','面包新语':'小吃/烘焙点心','原麦山丘':'小吃/烘焙点心','巴黎贝甜':'小吃/烘焙点心','多乐之日':'小吃/烘焙点心','泸溪河':'小吃/烘焙点心','鲍师傅':'小吃/烘焙点心','老面烧饼':'小吃/烘焙点心','熊治面包':'小吃/烘焙点心','熊治':'小吃/烘焙点心','好利来':'小吃/烘焙点心','元祖':'小吃/烘焙点心',
+  '长沙臭豆腐':'小吃/其他','西安肉夹馍':'小吃/其他','煎饼果子':'小吃/其他','手抓饼':'小吃/其他','酱香饼':'小吃/其他','鸡蛋灌饼':'小吃/其他','凉皮':'小吃/其他','五芳斋':'小吃/其他',
+  'KOI':'饮品/奶茶','KOI Thé':'饮品/奶茶','KOI The':'饮品/奶茶','茶话弄':'饮品/奶茶','马伍旺':'饮品/奶茶','茉莉奶白':'饮品/奶茶','酸奶罐罐':'饮品/奶茶','桂桂茶':'饮品/奶茶','桂源铺':'饮品/奶茶','裕莲茶楼':'饮品/奶茶','淡马茶坊':'饮品/奶茶','去山野':'饮品/奶茶','霸王茶姬':'饮品/奶茶',
+  '赣粉':'简餐/粉面米线',
+};
+
+/* ── 从 BRAND_DICT 查找品牌（模糊匹配） ── */
+function matchBrand(name){
+  for(var k in BRAND_DICT){if(!BRAND_DICT.hasOwnProperty(k))continue;
+    if(name===k)return BRAND_DICT[k];                         // 精确匹配
+    if(name.indexOf(k)>=0&&k.length>=2)return BRAND_DICT[k];  // name包含key（key≥2字）
+    if(k.indexOf(name)>=0&&name.length>=4)return BRAND_DICT[k]; // key包含name（name≥4字）
+  }
+  return null;
+}
+
+/* ═══ 分类引擎 v9 ═══ */
+function classify(r){
+  var name=(r.name||'').trim(),n=name.toLowerCase(),cost=r.cost||0,type=String(r.type||'');
+  // （非餐饮/早餐/茶馆/酒店等已在 loadData 的 preFilter 中统一剔除）
+
+  // 1) ★ 硬编码安全网：最常被误判的品牌（直接检查，不受任何规则影响）
+  if(n.indexOf('一点点')>=0||n.indexOf('1点点')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('喜茶')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('奈雪')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('古茗')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('柠季')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('蜜雪冰城')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('星巴克')>=0||n.indexOf('starbucks')>=0)return{cat1:'饮品',cat2:'咖啡',emoji:'☕'};
+  if(n.indexOf('瑞幸')>=0||n.indexOf('luckin')>=0)return{cat1:'饮品',cat2:'咖啡',emoji:'☕'};
+  if(n.indexOf('manner')>=0||n.indexOf('m stand')>=0||n.indexOf('mstand')>=0)return{cat1:'饮品',cat2:'咖啡',emoji:'☕'};
+  if(n.indexOf('麦当劳')>=0||n.indexOf('mcdonald')>=0)return{cat1:'简餐',cat2:'西式快餐',emoji:'🍔'};
+  if(n.indexOf('肯德基')>=0||n.indexOf('kfc')>=0)return{cat1:'简餐',cat2:'西式快餐',emoji:'🍔'};
+  if(n.indexOf('dq')>=0||n.indexOf('DQ')>=0)return{cat1:'饮品',cat2:'甜品',emoji:'🍰'};
+  if(n.indexOf('酸奶罐罐')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('桂桂茶')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('柠檬向右')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('茉酸奶')>=0||n.indexOf('阿嬷手作')>=0||n.indexOf('七分甜')>=0||n.indexOf('7分甜')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('汉堡')>=0)return{cat1:'简餐',cat2:'西式快餐',emoji:'🍔'};
+  if(n.indexOf('野人先生')>=0||n.indexOf('gelato')>=0)return{cat1:'饮品',cat2:'甜品',emoji:'🍰'};
+  if(n.indexOf('继光香香鸡')>=0||n.indexOf('香香鸡')>=0)return{cat1:'小吃',cat2:'炸串小吃',emoji:'🍢'};
+  if(n.indexOf('欢囍花生')>=0)return{cat1:'小吃',cat2:'坚果零食',emoji:'🍿'};
+  if(n.indexOf('苹果花园')>=0||n.indexOf('凯司令')>=0||n.indexOf('莉莲')>=0||n.indexOf('蛋卷日记')>=0)return{cat1:'小吃',cat2:'烘焙点心',emoji:'🍞'};
+  if(n.indexOf('卤人甲')>=0)return{cat1:'小吃',cat2:'卤味熟食',emoji:'🍗'};
+  if(n.indexOf('鸡公煲')>=0)return{cat1:'简餐',cat2:'中式快餐',emoji:'🍱'};
+  if(n.indexOf('麻辣香锅')>=0)return{cat1:'简餐',cat2:'麻辣烫冒菜',emoji:'🥘'};
+
+  // 2) ★ 品牌映射表
+  var bm=matchBrand(name);
+  if(bm){var parts=bm.split('/');return{cat1:parts[0],cat2:parts[1],emoji:C2E[parts[1]]||'🍽️'}}
+
+  // 3) ★ 价格规则（人均>50强制正餐）
+  if(cost>50){var c2='其他';if(n.indexOf('火锅')>=0||type.indexOf('0504')>=0)c2='火锅';else if(n.indexOf('烤肉')>=0||n.indexOf('烤鱼')>=0||n.indexOf('烧烤')>=0)c2='烧烤';else if(n.indexOf('披萨')>=0||n.indexOf('比萨')>=0)c2='西餐';else if(n.indexOf('牛排')>=0)c2='西餐';else if(n.indexOf('自助')>=0)c2='自助餐';return{cat1:'正餐',cat2:c2,emoji:C2E[c2]||'🍽️'}}
+
+  // 3) 关键词兜底（按简餐→饮品→小吃→正餐顺序）
+  // 3a) 炒菜/炒饭类 → 中式快餐
+  if(n.indexOf('炒')>=0)return{cat1:'简餐',cat2:'中式快餐',emoji:'🍱'};
+  // 3b) 健康餐/轻食 → 轻食沙拉
+  if(n.indexOf('健康')>=0)return{cat1:'简餐',cat2:'轻食沙拉',emoji:'🥗'};
+  if(n.indexOf('卤肉饭')>=0||n.indexOf('鸡腿饭')>=0||n.indexOf('排骨饭')>=0)return{cat1:'简餐',cat2:'中式快餐',emoji:'🍱'};
+  if(n.indexOf('盖浇饭')>=0||n.indexOf('盒饭')>=0||n.indexOf('便当')>=0||n.indexOf('快餐')>=0)return{cat1:'简餐',cat2:'中式快餐',emoji:'🍱'};
+  if(n.indexOf('麻辣烫')>=0||n.indexOf('冒菜')>=0)return{cat1:'简餐',cat2:'麻辣烫冒菜',emoji:'🥘'};
+  if(n.indexOf('螺蛳粉')>=0)return{cat1:'简餐',cat2:'粉面米线',emoji:'🍜'};
+  if(n.indexOf('生煎')>=0||n.indexOf('锅贴')>=0||n.indexOf('小笼包')>=0||n.indexOf('汤包')>=0)return{cat1:'简餐',cat2:'饺子馄饨',emoji:'🥟'};
+  if(n.indexOf('馄饨')>=0||n.indexOf('饺子')>=0||n.indexOf('水饺')>=0||n.indexOf('抄手')>=0||n.indexOf('云吞')>=0)return{cat1:'简餐',cat2:'饺子馄饨',emoji:'🥟'};
+  if(n.indexOf('拉面')>=0||n.indexOf('拌面')>=0||n.indexOf('冷面')>=0||n.indexOf('面馆')>=0||(n.indexOf('面')>=0&&n.indexOf('包')<0))return{cat1:'简餐',cat2:'粉面米线',emoji:'🍜'};
+  if(n.indexOf('米粉')>=0||n.indexOf('米线')>=0||n.indexOf('河粉')>=0||n.indexOf('粉馆')>=0||n.indexOf('粉店')>=0||n.indexOf('粉面')>=0||(n.indexOf('粉')>=0&&n.indexOf('面')<0&&n.indexOf('奶')<0))return{cat1:'简餐',cat2:'粉面米线',emoji:'🍜'};
+  if(n.indexOf('粥')>=0||n.indexOf('饭')>=0)return{cat1:'简餐',cat2:'中式快餐',emoji:'🍱'};
+  if(n.indexOf('沙拉')>=0||n.indexOf('轻食')>=0)return{cat1:'简餐',cat2:'轻食沙拉',emoji:'🥗'};
+  // 饮品
+  if(n.indexOf('奶茶')>=0||n.indexOf('茶饮')>=0||n.indexOf('柠檬茶')>=0||n.indexOf('果茶')>=0||n.indexOf('奶盖')>=0)return{cat1:'饮品',cat2:'奶茶',emoji:'🧋'};
+  if(n.indexOf('咖啡')>=0||n.indexOf('coffee')>=0||n.indexOf('拿铁')>=0||n.indexOf('café')>=0||n.indexOf('冰沙')>=0)return{cat1:'饮品',cat2:'咖啡',emoji:'☕'};
+  if(n.indexOf('甜品')>=0||n.indexOf('冰淇淋')>=0||n.indexOf('冰激凌')>=0||n.indexOf('雪糕')>=0)return{cat1:'饮品',cat2:'甜品',emoji:'🍰'};
+  // 小吃
+  if(n.indexOf('炸鸡')>=0||n.indexOf('鸡排')>=0||n.indexOf('薯条')>=0||n.indexOf('炸串')>=0||n.indexOf('鸡块')>=0||n.indexOf('盐酥鸡')>=0||n.indexOf('鸡米花')>=0)return{cat1:'小吃',cat2:'炸串小吃',emoji:'🍢'};
+  if(n.indexOf('面包')>=0||n.indexOf('烘焙')>=0||n.indexOf('蛋糕')>=0||n.indexOf('甜点')>=0||n.indexOf('糕点')>=0||n.indexOf('酥')>=0||n.indexOf('吐司')>=0||n.indexOf('西点')>=0||n.indexOf('蛋挞')>=0||n.indexOf('蛋卷')>=0)return{cat1:'小吃',cat2:'烘焙点心',emoji:'🍞'};
+  if(n.indexOf('卤味')>=0||n.indexOf('鸭脖')>=0||n.indexOf('鸭舌')>=0||n.indexOf('鸭头')>=0||n.indexOf('鸭翅')>=0||n.indexOf('鸡爪')>=0)return{cat1:'小吃',cat2:'卤味熟食',emoji:'🍗'};
+  if(n.indexOf('零食')>=0||n.indexOf('肉干')>=0||n.indexOf('坚果')>=0||n.indexOf('花生')>=0)return{cat1:'小吃',cat2:'坚果零食',emoji:'🍿'};
+  if(n.indexOf('臭豆腐')>=0||n.indexOf('肉夹馍')>=0||n.indexOf('烧饼')>=0)return{cat1:'小吃',cat2:'其他',emoji:'🍽️'};
+  // 正餐
+  if(n.indexOf('火锅')>=0||n.indexOf('涮')>=0)return{cat1:'正餐',cat2:'火锅',emoji:'🫕'};
+  if(n.indexOf('烤肉')>=0||n.indexOf('烤鱼')>=0||n.indexOf('烧烤')>=0||n.indexOf('BBQ')>=0)return{cat1:'正餐',cat2:'烧烤',emoji:'🍖'};
+  if(n.indexOf('牛排')>=0||n.indexOf('比萨')>=0||n.indexOf('披萨')>=0||n.indexOf('pizza')>=0)return{cat1:'正餐',cat2:'西餐',emoji:'🍝'};
+  if(n.indexOf('海鲜')>=0)return{cat1:'正餐',cat2:'其他',emoji:'🍽️'};
+  if(n.indexOf('日本')>=0||n.indexOf('日料')>=0||n.indexOf('日式')>=0||n.indexOf('寿司')>=0||n.indexOf('刺身')>=0||n.indexOf('韩国')>=0||n.indexOf('韩式')>=0||n.indexOf('韩料')>=0)return{cat1:'正餐',cat2:'日韩菜',emoji:'🍣'};
+  if(n.indexOf('自助')>=0||n.indexOf('放题')>=0)return{cat1:'正餐',cat2:'自助餐',emoji:'🍽️'};
+  if(n.indexOf('川')>=0||n.indexOf('湘')>=0)return{cat1:'正餐',cat2:'川湘菜',emoji:'🌶️'};
+  if(n.indexOf('粤')>=0||n.indexOf('广东')>=0||n.indexOf('潮汕')>=0)return{cat1:'正餐',cat2:'粤菜',emoji:'🥢'};
+  if(n.indexOf('江浙')>=0||n.indexOf('本帮')>=0||n.indexOf('上海菜')>=0)return{cat1:'正餐',cat2:'江浙菜',emoji:'🥢'};
+  if(n.indexOf('东北')>=0||n.indexOf('饺子馆')>=0)return{cat1:'正餐',cat2:'东北菜',emoji:'🥟'};
+  if(n.indexOf('西餐')>=0||n.indexOf('bistro')>=0||n.indexOf('grill')>=0||n.indexOf('意大')>=0)return{cat1:'正餐',cat2:'西餐',emoji:'🍝'};
+  if(n.indexOf('铁板')>=0||n.indexOf('宴会')>=0)return{cat1:'正餐',cat2:'其他',emoji:'🍽️'};
+
+  // 4) type码兜底
+  if(type.indexOf('0504')>=0)return{cat1:'正餐',cat2:'火锅',emoji:'🫕'};
+  if(type.indexOf('0505')>=0)return{cat1:'正餐',cat2:'烧烤',emoji:'🍖'};
+  if(type.indexOf('0503')>=0)return{cat1:'简餐',cat2:'中式快餐',emoji:'🍱'};
+  if(type.indexOf('0506')>=0)return{cat1:'饮品',cat2:'咖啡',emoji:'☕'};
+  if(type.indexOf('0508')>=0)return{cat1:'小吃',cat2:'烘焙点心',emoji:'🍞'};
+  if(type.indexOf('0509')>=0)return{cat1:'小吃',cat2:'其他',emoji:'🍽️'};
+  if(type.indexOf('0501')>=0||type.indexOf('0502')>=0)return{cat1:'正餐',cat2:'其他',emoji:'🍽️'};
+  return{cat1:'简餐',cat2:'其他',emoji:'🍽️'};
+}
+
+/* ═══ JSONP + API（自动分页） ═══ */
+function jp(path,params){return new Promise(function(rs,rj){var cb='_j'+Date.now()+'_'+Math.random().toString(36).slice(2,6),s=document.createElement('script');var d=false;var t=setTimeout(function(){if(!d){d=true;cl();rj(new Error('超时'))}},12000);window[cb]=function(v){if(!d){d=true;cl();rs(v)}};function cl(){clearTimeout(t);delete window[cb];if(s.parentNode)s.remove()}var q=new URLSearchParams(params);q.set('callback',cb);s.src=H+path+'?'+q;s.onerror=function(){if(!d){d=true;cl();rj(new Error('网络不通'))}};document.head.appendChild(s)})}
+function hver(lat1,ln1,lat2,ln2){var R=6371000;var r=function(d){return d*Math.PI/180};var dl=r(lat2-lat1),dg=r(ln2-ln1);var a=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dg/2)*Math.sin(dg/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+function fmd(m){return m<1000?Math.round(m)+'m':(m/1000).toFixed(1)+'km'}
+function sts(r){var f=Math.floor(r);return'★'.repeat(f)+'☆'.repeat(5-f)}
+
+function parsePoi(p,defLat,defLng){
+  var loc=p.location||'0,0',parts=loc.split(',');var plng=parseFloat(parts[0])||0,plat=parseFloat(parts[1])||0;
+  return{id:p.id||'p'+Math.random().toString(36).slice(2,8),name:p.name||'',type:p.type||'',_raw:p,lat:plat||defLat,lng:plng||defLng,dist:parseFloat(p.distance)||0,photos:p.photos||[],cost:parseFloat((p.biz_ext&&p.biz_ext.cost)||0),rating:parseFloat((p.biz_ext&&p.biz_ext.rating)||4.0),address:p.address||''};
+}
+
+/* 自动分页：每页25条，直到取完（最多8页=200家） */
+async function fetchAll(lat,lng,radius){
+  var all=[],seen={},page=1,maxPage=20;
+  while(page<=maxPage){
+    var d=await jp('/v3/place/around',{key:K,location:lng+','+lat,radius:String(radius),types:'050000',offset:'25',page:String(page),extensions:'all'});
+    if(d.status!=='1')throw new Error(d.info||'API异常');
+    var pois=d.pois||[],added=0;
+    for(var i=0;i<pois.length;i++){
+      var poi=parsePoi(pois[i],lat,lng);
+      if(!seen[poi.id]){seen[poi.id]=true;all.push(poi);added++}
+    }
+    console.log('📄 p'+page+': '+added+'条, 累计'+all.length);
+    if(pois.length<25)break; // 最后一页不足25条才停止
+    page++;if(page<=maxPage)await new Promise(function(r){setTimeout(r,200)});
+  }
+  return all;
+}
+
+async function rgeo(lat,lng){
+  var d=await jp('/v3/geocode/regeo',{key:K,location:lng+','+lat,extensions:'base'});if(d.status!=='1')return null;
+  var comp=d.regeocode&&d.regeocode.addressComponent;if(!comp)return null;
+  return(comp.streetNumber&&comp.streetNumber.street)||comp.township||comp.district||comp.city||null;
+}
+async function searchTips(kw,city){
+  var p={key:K,keywords:kw};if(city&&city.length>0)p.city=city;
+  console.log('🔎 搜索地址: kw='+kw+' city='+(city||'(全国)'));
+  var d=await jp('/v3/assistant/inputtips',p);if(d.status!=='1'){console.warn('inputtips API返回:',d);return[]}
+  var tips=d.tips||[];console.log('  收到'+tips.length+'条建议');
+  return tips.map(function(t){
+    var loc=String(t.location||'');if(loc==='[]'||loc==='')loc='';
+    var parts=loc.split(',');var lng=parseFloat(parts[0])||0,lat=parseFloat(parts[1])||0;
+    return{id:t.id,name:t.name,district:t.district||'',address:t.address||'',lng:lng,lat:lat,hasLoc:!!(loc&&loc!=='[]')};
+  });
+}
+
+/* ═══ 状态 ═══ */
+var S={tab:'home',loc:{lat:DEF.lat,lng:DEF.lng},locStat:'loading',locLabel:'定位中...',city:'上海',loading:false,all:[],distF:500,cat1:'全部美食',cat2:'',bl:[],lastId:null,shownIds:new Set(),curSheet:null,spinning:false,popId:null};
+
+function ldBl(){try{S.bl=JSON.parse(localStorage.getItem(LS)||'[]')}catch(e){S.bl=[]}}
+function svBl(){localStorage.setItem(LS,JSON.stringify(S.bl))}
+function addBl(id){if(S.bl.indexOf(id)<0){S.bl.push(id);svBl()}}
+function rmBl(id){S.bl=S.bl.filter(function(b){return b!==id});svBl()}
+
+/* ═══ 筛选 ═══ */
+function getFiltered(){
+  var list=[],ul=S.loc;
+  for(var i=0;i<S.all.length;i++){var r=S.all[i],c=classify(r);if(!c)continue;
+    var realDist=hver(ul.lat,ul.lng,r.lat,r.lng); // Haversine真实距离
+    list.push({id:r.id,name:r.name,type:r.type,_raw:r._raw,lat:r.lat,lng:r.lng,dist:realDist,photos:r.photos,cost:r.cost,rating:r.rating,address:r.address,cat1:c.cat1,cat2:c.cat2,emoji:c.emoji})}
+  list=list.filter(function(r){return S.bl.indexOf(r.id)<0});
+  list=list.filter(function(r){return r.dist<=S.distF});
+  if(S.cat1!=='全部美食')list=list.filter(function(r){return r.cat1===S.cat1});
+  if(S.cat2)list=list.filter(function(r){return r.cat2===S.cat2});
+  list.sort(function(a,b){return a.dist-b.dist});
+  return list;
+}
+
+/* ═══ 距离 Popover ═══ */
+function toggleDistPop(){
+  var pop=document.getElementById('distPop'),back=document.getElementById('distBack');
+  if(pop.classList.contains('on')){closeDistPop();return}
+  var items=[{v:500,l:'500米',sel:S.distF===500},{v:1000,l:'1公里',sel:S.distF===1000}];
+  pop.innerHTML=items.map(function(it){return'<button class="it'+(it.sel?' sel':'')+'" data-v="'+it.v+'" onclick="selectDist('+it.v+')">'+it.l+'</button>'}).join('');
+  var rect=document.getElementById('topDist').getBoundingClientRect();
+  pop.style.right=(window.innerWidth-rect.right)+'px';pop.style.top=(rect.bottom+4)+'px';pop.style.left='auto';
+  pop.classList.add('on');back.classList.add('on');
+}
+function selectDist(v){closeDistPop();if(v!==S.distF){S.distF=v;console.log("📏 距离→"+v+"m");updateDistBtn();renderHome()}else updateDistBtn()}
+function closeDistPop(){document.getElementById('distPop').classList.remove('on');document.getElementById('distBack').classList.remove('on')}
+
+/* ═══ Tab + 细类胶囊 ═══ */
+function renderSubRow(){
+  var row=document.getElementById('subRow');
+  if(S.cat1==='全部美食'){row.classList.remove('on');row.innerHTML='';S.cat2='';return}
+  var opts=CAT2[S.cat1]||[];if(!opts.length){row.classList.remove('on');S.cat2='';return}
+  row.classList.add('on');
+  row.innerHTML=opts.map(function(o){return'<button class="sub-chip'+(S.cat2===o?' on':'')+'" data-v="'+o+'">'+o+'</button>'}).join('');
+}
+function selectCat1(v){
+  if(S.cat1===v){S.cat1='全部美食';S.cat2=''}else{S.cat1=v;S.cat2=''}
+  document.querySelectorAll('.cat-tab').forEach(function(t){t.classList.toggle('on',t.dataset.v===S.cat1)});
+  renderSubRow();renderHome();
+}
+function selectCat2(v){
+  S.cat2=(S.cat2===v)?'':v;
+  renderSubRow();renderHome();
+}
+
+/* ═══ 定位 ═══ */
+function updLocUI(){var t=document.getElementById('locTxt');if(S.locStat==='loading')t.textContent='定位中...';else if(S.locStat==='ok')t.textContent=S.locLabel||'已定位';else t.textContent='定位失败，点击选择'}
+async function refreshLocLabel(){var l=await rgeo(S.loc.lat,S.loc.lng);if(l){S.locLabel=l;S.city='';var d=await rgeoFull(S.loc.lat,S.loc.lng);if(d){S.city=d.city||d.province||''}}updLocUI()}
+async function rgeoFull(lat,lng){var d=await jp('/v3/geocode/regeo',{key:K,location:lng+','+lat,extensions:'base'});if(d.status!=='1')return null;var c=d.regeocode&&d.regeocode.addressComponent;if(!c)return null;return{province:c.province||'',city:c.city||'',district:c.district||''}}
+function reqLoc(){S.locStat='loading';updLocUI();
+  if(window.location.protocol==='http:'&&window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1'){fbLoc();return}
+  if(!navigator.geolocation){fbLoc();return}
+  var safety=setTimeout(function(){fbLoc()},5000);
+  navigator.geolocation.getCurrentPosition(async function(p){clearTimeout(safety);S.loc={lat:p.coords.latitude,lng:p.coords.longitude};S.locStat='ok';await refreshLocLabel();await loadData()},function(e){clearTimeout(safety);fbLoc()},{enableHighAccuracy:true,timeout:5000,maximumAge:60000})
+}
+function fbLoc(){S.loc={lat:DEF.lat,lng:DEF.lng};S.locStat='error';S.locLabel='定位失败，点击选择';updLocUI();loadData();showToast('📍 使用默认位置：上海人民广场')}
+function preFilter(r){
+  var n=(r.name||'').toLowerCase(),t=String(r.type||'');
+  if(!r.cost||r.cost<=0)return false; // 无价格数据剔除
+  for(var i=0;i<NON_FOOD.length;i++){if(r.name.indexOf(NON_FOOD[i])>=0)return false} // 非餐饮
+  if(t.indexOf('0601')>=0||t.indexOf('0701')>=0||t.indexOf('0801')>=0||t.indexOf('0901')>=0)return false;
+  if(n.indexOf('早餐')>=0||n.indexOf('早点')>=0||n.indexOf('馒头')>=0||n.indexOf('包子')>=0||n.indexOf('巴比')>=0||n.indexOf('早阳')>=0||n.indexOf('和善园')>=0)return false;
+  if(n.indexOf('茶馆')>=0||n.indexOf('茶庄')>=0||n.indexOf('茶室')>=0||n.indexOf('茶叶')>=0)return false;
+  if(n.indexOf('酒店')>=0||n.indexOf('酒馆')>=0||n.indexOf('酒吧')>=0||n.indexOf('旅馆')>=0||n.indexOf('宾馆')>=0)return false;
+  if(n.indexOf('茶')>=0&&n.indexOf('奶茶')<0&&n.indexOf('茶饮')<0&&n.indexOf('果茶')<0&&n.indexOf('柠檬茶')<0&&n.indexOf('抹茶')<0)return false;
+  return true;
+}
+async function loadData(){S.loading=true;renderHome();try{var raw=await fetchAll(S.loc.lat,S.loc.lng,2000);raw=raw.filter(preFilter);
+  // 品牌/连锁优先排序：命中BRAND_DICT或安全网的排前面，同品牌内按距离排序
+  raw.sort(function(a,b){var ba=isChain(a.name)?1:0,bb=isChain(b.name)?1:0;if(ba!==bb)return bb-ba;return (a.dist||0)-(b.dist||0)});
+  S.all=raw;showToast('餐厅加载完成 🍽️',1500)}catch(e){S.all=[];showToast('获取失败: '+e.message,4000)}finally{S.loading=false;renderHome()}}
+function isChain(name){if(matchBrand(name))return true;var n=name.toLowerCase();return n.indexOf('一点点')>=0||n.indexOf('喜茶')>=0||n.indexOf('麦当劳')>=0||n.indexOf('肯德基')>=0||n.indexOf('星巴克')>=0||n.indexOf('海底捞')>=0||n.indexOf('蜜雪冰城')>=0||n.indexOf('瑞幸')>=0||n.indexOf('汉堡')>=0||n.indexOf('达美乐')>=0||n.indexOf('必胜客')>=0||n.indexOf('华莱士')>=0||n.indexOf('德克士')>=0||n.indexOf('杨国福')>=0||n.indexOf('张亮')>=0||n.indexOf('绝味')>=0||n.indexOf('周黑鸭')>=0||n.indexOf('沙县')>=0||n.indexOf('老乡鸡')>=0||n.indexOf('真功夫')>=0}
+
+/* ═══ 渲染 ═══ */
+window.handleImgErr=function(img){var fb=img.getAttribute('data-fb'),em=img.getAttribute('data-em');if(fb&&img.src!==fb){img.src=fb;return}img.outerHTML='<span style=font-size:1.8rem>'+em+'</span>'};
+function escH(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function renderHome(){renderList();updateDistBtn()}
+function updateDistBtn(){document.getElementById('topDist').innerHTML=(S.distF===500?'500m':'1km')+'<span class="arr">▼</span>'}
+function renderList(){
+  var ct=document.getElementById('resList'),ce=document.getElementById('resCount');
+  if(S.loading&&S.all.length===0){ce.textContent='正在分页搜索餐厅...🔍';ct.innerHTML='<div class="empty"><div class="e-emoji">📡</div><div class="e-title">正在获取餐厅</div><div class="e-desc">自动分页搜索 '+S.distF+' 米内全部餐厅...</div></div>';updBlLink();return}
+  var list=getFiltered();ce.textContent=list.length+' 家 · '+S.distF+'米内';updBlLink();
+  if(!list.length){ct.innerHTML='<div class="empty"><div class="e-emoji">🍽️</div><div class="e-title">没有找到</div><div class="e-desc">'+(S.bl.length?'试试调整筛选或恢复黑名单':'放宽筛选条件试试')+'</div></div>';return}
+  ct.innerHTML=list.map(function(r){
+    var logo=getLogo(r.name),photo=r.photos&&r.photos.length?r.photos[0].url:'',em=r.emoji||'🍽️',src=logo||photo||'',fb=logo&&photo?photo:'';
+    if(src)return'<div class="res-card" data-id="'+r.id+'"><div class="card-pic"><img src="'+src+'" alt="'+escH(r.name)+'" data-fb="'+fb+'" data-em="'+em+'" onerror="handleImgErr(this)" loading="lazy"></div><div class="card-info"><div class="card-name">'+escH(r.name)+'</div><div class="card-tags"><span class="tag tag-s">'+r.cat1+'</span><span class="tag tag-c">'+r.cat2+'</span></div><div class="card-meta"><span class="card-price">'+(r.cost?'¥'+r.cost:'暂无')+'</span><span class="card-dist">'+fmd(r.dist)+'</span></div></div><button class="card-more" data-act="more" data-id="'+r.id+'">···</button></div>';
+    return'<div class="res-card" data-id="'+r.id+'"><div class="card-pic"><span style="font-size:1.8rem">'+em+'</span></div><div class="card-info"><div class="card-name">'+escH(r.name)+'</div><div class="card-tags"><span class="tag tag-s">'+r.cat1+'</span><span class="tag tag-c">'+r.cat2+'</span></div><div class="card-meta"><span class="card-price">'+(r.cost?'¥'+r.cost:'暂无')+'</span><span class="card-dist">'+fmd(r.dist)+'</span></div></div><button class="card-more" data-act="more" data-id="'+r.id+'">···</button></div>';
+  }).join('');
+}
+function updBlLink(){var b=document.getElementById('btnBl');if(S.bl.length){b.classList.add('has');b.textContent='📋 查看黑名单 ('+S.bl.length+')'}else{b.classList.remove('has');b.textContent='📋 查看黑名单'}}
+
+/* ═══ Toast/Sheet/黑名单/老虎机/搜索 ═══ */
+function showToast(m,d){d=d||2100;var c=document.getElementById('toastCt'),t=document.createElement('div');t.className='toast';t.textContent=m;c.appendChild(t);setTimeout(function(){if(t.parentNode)t.remove()},d)}
+function ripple(e,el){var r=document.createElement('span');r.className='ripple';var rect=el.getBoundingClientRect(),sz=Math.max(rect.width,rect.height);r.style.width=r.style.height=sz+'px';r.style.left=(e.clientX-rect.left-sz/2)+'px';r.style.top=(e.clientY-rect.top-sz/2)+'px';el.appendChild(r);r.addEventListener('animationend',function(){r.remove()})}
+function showSheet(r){S.curSheet=r;document.getElementById('sheetEm').textContent=r.emoji;document.getElementById('sheetNm').textContent=r.name;document.getElementById('sheetTg').innerHTML='<span class="tag tag-s">'+r.cat1+'</span><span class="tag tag-c">'+r.cat2+'</span>';document.getElementById('sheetPr').textContent=r.cost?'¥'+r.cost:'暂无';document.getElementById('sheetDs').textContent=fmd(r.dist);document.getElementById('sheetAd').textContent='📍 '+(r.address||r.name);document.getElementById('sheetOv').classList.add('on');document.getElementById('sheetPn').classList.add('on')}
+function closeSheet(){document.getElementById('sheetOv').classList.remove('on');document.getElementById('sheetPn').classList.remove('on');S.curSheet=null}
+function navigate(r){var is=/iPhone|iPad|iPod/.test(navigator.userAgent);window.open(is?'https://uri.amap.com/navigation?to='+r.lng+','+r.lat+','+encodeURIComponent(r.name)+'&mode=walk':'https://www.google.com/maps/dir/?api=1&destination='+r.lat+','+r.lng+'&travelmode=walking','_blank')}
+function showBlModal(){var b=document.getElementById('blBody');if(!S.bl.length)b.innerHTML='<div class="modal-empty">黑名单为空 🎉<br>点击 ··· 即可拉黑</div>';else{b.innerHTML=S.bl.map(function(id){var r=S.all.find(function(x){return x.id===id});if(!r)return'';return'<div class="bl-item"><span class="bl-emoji">'+r.emoji+'</span><span class="bl-name">'+r.name+'</span><button class="btn-restore" data-act="restore" data-id="'+r.id+'">恢复</button></div>'}).join('')}document.getElementById('blOv').classList.add('on')}
+function closeBlModal(){document.getElementById('blOv').classList.remove('on')}
+function showPop(id,x,y){S.popId=id;var p=document.getElementById('popMenu'),l=x-70,t=y+6;if(l<4)l=4;if(l+150>innerWidth-4)l=innerWidth-154;if(t+50>innerHeight-100)t=y-50;p.style.left=l+'px';p.style.top=t+'px';p.classList.add('on')}
+function hidePop(){document.getElementById('popMenu').classList.remove('on');S.popId=null}
+function buildPool(){var f=getFiltered();var a=f.filter(function(r){return!S.shownIds.has(r.id)});if(!a.length){S.shownIds.clear();a=f.slice();showToast('🔄 已全部展示过一轮，重新开始',2500)}if(!a.length)return{pool:[],err:'没有可选的餐厅'};if(a.length===1&&a[0].id===S.lastId)return{pool:[],err:'只有一家可选，无法更换'};var p;if(a.length<=6)p=a.slice();else{var arr=a.slice();for(var i=0;i<6;i++){var j=i+Math.floor(Math.random()*(arr.length-i)),tmp=arr[i];arr[i]=arr[j];arr[j]=tmp}p=arr.slice(0,6)}return{pool:p,err:null}}
+function resetReels(){for(var n=1;n<=3;n++){document.getElementById('reelE'+n).textContent='🎰';document.getElementById('reelN'+n).textContent='准备'}document.querySelectorAll('.slot-reel').forEach(function(r){r.classList.remove('win')})}
+function runSlot(pool,winner,cb){var cfgs=[{id:1,dur:1800},{id:2,dur:2500},{id:3,dur:3200}],st=performance.now(),lt=[0,0,0];cfgs.forEach(function(c,i){var ee=document.getElementById('reelE'+c.id),ne=document.getElementById('reelN'+c.id),re=document.getElementById('slotR'+c.id);var ci=Math.floor(Math.random()*pool.length);function tick(now){var e=now-st,p=Math.min(e/c.dur,1);if(p>=1){ee.textContent=winner.emoji;ne.textContent=winner.name.slice(0,5);re.classList.add('win');if(i===cfgs.length-1)setTimeout(function(){cb(winner)},700);return}var iv=50+p*p*400;if(now-lt[i]>=iv){ci=(ci+1)%pool.length;var it=pool[ci];ee.textContent=it.emoji;ne.textContent=it.name.slice(0,5);lt[i]=now}requestAnimationFrame(tick)}requestAnimationFrame(tick)})}
+function openSlot(){var res=buildPool();if(res.err){showToast(res.err,2500);return}var ov=document.getElementById('slotOv');ov.classList.add('on');document.getElementById('slotHint').textContent='🎰 随机抽取中...';document.getElementById('slotClose').style.display='none';S.spinning=true;document.getElementById('btnRand').disabled=true;resetReels();var wi=Math.floor(Math.random()*res.pool.length),w=res.pool[wi];runSlot(res.pool,w,function(r){S.spinning=false;S.lastId=r.id;S.shownIds.add(r.id);document.getElementById('slotHint').textContent='🎉 '+r.name+'！';document.getElementById('slotClose').style.display='';setTimeout(function(){ov.classList.remove('on');document.getElementById('btnRand').disabled=false;showSheet(r)},1000)})}
+function closeSlot(){if(S.spinning)return;document.getElementById('slotOv').classList.remove('on');document.getElementById('btnRand').disabled=false}
+
+var srchTmr=null;
+function openSrch(){document.getElementById('srchPage').classList.add('on');document.getElementById('srchBody').innerHTML='<div class="srch-empty">输入关键词搜索地址</div>';var i=document.getElementById('srchInp');i.value='';document.getElementById('srchClr').classList.remove('on');setTimeout(function(){i.focus()},300)}
+function closeSrch(){document.getElementById('srchPage').classList.remove('on');document.getElementById('srchInp').blur()}
+function onSrchInput(kw){var cl=document.getElementById('srchClr');if(kw.length){cl.classList.add('on')}else{cl.classList.remove('on');document.getElementById('srchBody').innerHTML='<div class="srch-empty">输入关键词搜索地址</div>';return}clearTimeout(srchTmr);srchTmr=setTimeout(function(){doSrch(kw)},300)}
+async function doSrch(kw){var el=document.getElementById('srchBody');el.innerHTML='<div class="srch-loading">搜索中...</div>';try{var tips=await searchTips(kw,S.city||'');if(!tips.length){el.innerHTML='<div class="srch-empty">未找到相关地址</div>';return}var lat=S.loc.lat,lng=S.loc.lng;tips.forEach(function(t){t._d=t.hasLoc?hver(lat,lng,t.lat,t.lng):Infinity});tips.sort(function(a,b){return a._d-b._d});el.innerHTML=tips.map(function(t){var j=JSON.stringify({id:t.id,name:t.name,addr:t.district||t.address||'',lat:t.lat,lng:t.lng,hasLoc:t.hasLoc}).replace(/'/g,'&#39;');return'<div class="srch-item" data-t=\''+j+'\'><div class="srch-item-icon">📍</div><div class="srch-item-info"><div class="srch-item-name">'+escH(t.name)+'</div><div class="srch-item-addr">'+escH(t.address||t.district||'')+'</div></div><div class="srch-item-dist">'+(t.hasLoc?fmd(t._d):'')+'</div></div>'}).join('')}catch(e){el.innerHTML='<div class="srch-empty">搜索失败，请重试</div>';console.error(e)}}
+async function selAddr(td){closeSrch();
+  if(!td.hasLoc||!td.lat||!td.lng){
+    // 无坐标 → 尝试用 name+addr 做正向地理编码
+    var geoName=td.name+(td.addr?','+td.addr:'');
+    try{var gd=await jp('/v3/geocode/geo',{key:K,address:geoName,city:S.city||''});if(gd.status==='1'&&gd.geocodes&&gd.geocodes.length){var gc=gd.geocodes[0];var parts=gc.location.split(',');td.lat=parseFloat(parts[1])||0;td.lng=parseFloat(parts[0])||0;td.hasLoc=true}}
+    catch(e){console.warn('地理编码失败:',e)}
+    if(!td.hasLoc||!td.lat||!td.lng){showToast('无法获取该地址坐标，请尝试更具体的关键词');return}
+  }
+  S.loc={lat:td.lat,lng:td.lng};S.locStat='ok';S.locLabel=td.name;updLocUI();await loadData();showToast('已定位到 '+(td.name||'选中地址')+' 📍')}
+function switchTab(n){if(S.tab===n)return;S.tab=n;document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});document.getElementById('page-'+n).classList.add('active');document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});document.querySelector('.nav-tab[data-tab="'+n+'"]').classList.add('active');document.getElementById('btnRand').classList.toggle('hide',n!=='home')}
+
+/* ═══ Init ═══ */
+function init(){
+  ldBl();S.loading=true;S.locStat='error';S.locLabel='定位失败，点击选择';updLocUI();renderHome();setTimeout(reqLoc,100);
+  // 顶部
+  document.getElementById('topLoc').addEventListener('click',function(){if(S.locStat!=='loading')openSrch()});
+  document.getElementById('topDist').addEventListener('click',function(){toggleDistPop()});
+  document.getElementById('distBack').addEventListener('click',function(){closeDistPop()});
+  // 分类Tab
+  document.getElementById('catTabs').addEventListener('click',function(e){var t=e.target.closest('.cat-tab');if(t)selectCat1(t.dataset.v)});
+  document.getElementById('subRow').addEventListener('click',function(e){var c=e.target.closest('.sub-chip');if(c)selectCat2(c.dataset.v)});
+  // 列表
+  document.getElementById('resList').addEventListener('click',function(e){var mo=e.target.closest('[data-act="more"]');if(mo){e.stopPropagation();var r=mo.getBoundingClientRect();showPop(mo.dataset.id,r.left+r.width/2,r.bottom);return}var cd=e.target.closest('.res-card');if(cd){ripple(e,cd);var r=getFiltered().find(function(x){return x.id===cd.dataset.id});if(r)showSheet(r)}});
+  document.getElementById('popMenu').addEventListener('click',function(e){if(e.target.closest('[data-act="bl-pop"]')){var id=S.popId,r=S.all.find(function(x){return x.id===id});if(id){addBl(id);if(S.lastId===id)S.lastId=null;renderHome();showToast('已拉黑 '+(r?r.name:'')+' 🚫')}hidePop()}});
+  document.addEventListener('click',function(e){if(S.popId&&!e.target.closest('.pop-menu')&&!e.target.closest('[data-act="more"]'))hidePop()});
+  // 随机
+  document.getElementById('btnRand').addEventListener('click',function(){if(S.spinning)return;if(!getFiltered().length){showToast('没有可选的餐厅 😢',2500);return}openSlot()});
+  document.getElementById('slotClose').addEventListener('click',function(){closeSlot()});document.getElementById('slotOv').addEventListener('click',function(e){if(e.target===e.currentTarget)closeSlot()});
+  // Sheet
+  document.getElementById('sheetOv').addEventListener('click',function(){closeSheet()});document.getElementById('sheetClose').addEventListener('click',function(){closeSheet()});
+  document.getElementById('sheetNav').addEventListener('click',function(){if(S.curSheet)navigate(S.curSheet)});
+  document.getElementById('sheetReroll').addEventListener('click',function(){closeSheet();setTimeout(function(){if(!getFiltered().length){showToast('没有其他可选 😢',2500);return}openSlot()},400)});
+  document.getElementById('sheetPn').addEventListener('click',function(e){e.stopPropagation()});
+  // 黑名单
+  document.getElementById('btnBl').addEventListener('click',function(){showBlModal()});document.getElementById('blClose').addEventListener('click',function(){closeBlModal()});document.getElementById('blOv').addEventListener('click',function(e){if(e.target===e.currentTarget)closeBlModal()});
+  document.getElementById('blBody').addEventListener('click',function(e){var b=e.target.closest('[data-act="restore"]');if(!b)return;rmBl(b.dataset.id);var r=S.all.find(function(x){return x.id===b.dataset.id});renderHome();showBlModal();showToast('已恢复 '+(r?r.name:'')+' ✅')});
+  // 搜索
+  document.getElementById('srchBack').addEventListener('click',function(){closeSrch()});
+  document.getElementById('srchInp').addEventListener('input',function(){onSrchInput(document.getElementById('srchInp').value.trim())});
+  document.getElementById('srchClr').addEventListener('click',function(){document.getElementById('srchInp').value='';document.getElementById('srchClr').classList.remove('on');document.getElementById('srchBody').innerHTML='<div class="srch-empty">输入关键词搜索地址</div>';document.getElementById('srchInp').focus()});
+  document.getElementById('srchBody').addEventListener('click',function(e){var it=e.target.closest('.srch-item');if(!it)return;try{selAddr(JSON.parse(it.dataset.t))}catch(er){console.error(er)}});
+  // 底部导航
+  document.querySelector('.bottom-nav').addEventListener('click',function(e){var t=e.target.closest('.nav-tab');if(t)switchTab(t.dataset.tab)});
+  // Escape
+  document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if(document.getElementById('sheetOv').classList.contains('on'))closeSheet();else if(document.getElementById('slotOv').classList.contains('on'))closeSlot();else if(document.getElementById('blOv').classList.contains('on'))closeBlModal();else if(document.getElementById('srchPage').classList.contains('on'))closeSrch();else if(S.popId)hidePop();else if(document.getElementById('distPop').classList.contains('on'))closeDistPop()});
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
